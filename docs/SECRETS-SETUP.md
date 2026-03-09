@@ -68,7 +68,7 @@ Le token resemble a: `sqg_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 - Creer le projet sur SonarCloud avec le nom "taskmanager"
 
 ### Erreur: "Token is invalid"
-- Regenerer un nouveau token sur SonarCloud
+- Regenerer un nouveau token sur SonarCloud aa
 - Mettre a jour le secret sur GitHub
 
 ---
