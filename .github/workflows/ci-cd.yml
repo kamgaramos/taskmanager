@@ -63,7 +63,7 @@ jobs:
 
       # Build application
       - name: Build application
-        run: ./mvnw clean package -DskipTests
+        run: mvn clean package -DskipTests
 
       # Upload JAR artifact
       - name: Upload JAR artifact
@@ -96,17 +96,17 @@ jobs:
 
       # Checkstyle
       - name: Run Checkstyle
-        run: ./mvnw checkstyle:check
+        run: mvn checkstyle:check
         continue-on-error: true
 
       # PMD Analysis
       - name: Run PMD
-        run: ./mvnw pmd:pmd
+        run: mvn pmd:pmd
         continue-on-error: true
 
       # SpotBugs Analysis
       - name: Run SpotBugs
-        run: ./mvnw spotbugs:spotbugs
+        run: mvn spotbugs:spotbugs
         continue-on-error: true
 
       # Upload Checkstyle results
@@ -153,7 +153,7 @@ jobs:
 
       # Run tests
       - name: Run tests
-        run: ./mvnw test
+        run: mvn test
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/taskmanager
@@ -198,7 +198,7 @@ jobs:
 
       # SonarQube Scan
       - name: SonarQube Scan
-        run: ./mvnw sonar:sonar
+        run: mvn sonar:sonar
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -225,7 +225,7 @@ jobs:
 
       # Dependency Check (OWASP)
       - name: OWASP Dependency Check
-        run: ./mvnw org.owasp:dependency-check-maven:check
+        run: mvn org.owasp:dependency-check-maven:check
         continue-on-error: true
 
       # Upload dependency check report
