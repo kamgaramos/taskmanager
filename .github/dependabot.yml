@@ -1,0 +1,78 @@
+# Dependabot Configuration
+# https://docs.github.com/en/code-security/dependabot
+
+version: 2
+
+updates:
+  # Enable version updates for Maven
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "maven"
+    reviewers:
+      - "kamgaramos"
+    # Group all Maven dependencies into a single PR
+    grouping:
+      update-types:
+        - "minor"
+        - "patch"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "ci"
+      - "github-actions"
+    reviewers:
+      - "kamgaramos"
+
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    labels:
+      - "docker"
+      - "dependencies"
+    reviewers:
+      - "kamgaramos"
+
+# Configure pull request behavior
+pull-request-branch-name:
+  # Separate sections by "-" for folders in the dependency groups
+  separator: "-"
+
+# Automatically merge minor and patch updates (optional)
+# Enable this after testing the initial setup
+# automerges:
+#   - dependency-type: "development"
+#     update-type: "semver-patch"
+#   - dependency-type: "production"
+#     update-type: "semver-patch"
+
