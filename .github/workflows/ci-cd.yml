@@ -322,56 +322,102 @@ jobs:
           path: tags.txt
 
   # ============================================
-  # STAGE 7: DEPLOYMENT
+  # STAGE 7: DEPLOYMENT (GitHub Containers)
   # ============================================
   deploy:
-    name: Deploy
+    name: Deploy to GHCR
     runs-on: ubuntu-latest
     needs: docker-build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     environment:
       name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-      url: ${{ github.ref == 'refs/heads/main' && 'https://taskmanager.prod.example.com' || 'https://taskmanager.staging.example.com' }}
+      url: ${{ github.ref == 'refs/heads/main' && 'https://github.com/kamgaramos/taskmanager/pkgs/container/taskmanager' || 'https://github.com/kamgaramos/taskmanager/pkgs/container/taskmanager' }}
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download deployment artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-info
-
-      - name: Display image tags
-        run: cat tags.txt
-
-      # Deploy to staging (develop branch)
-      - name: Deploy to Staging
-        if: github.ref == 'refs/heads/develop'
+      # Get image info
+      - name: Get Image Info
+        id: image
         run: |
-          echo "Deploying to STAGING environment..."
-          # Add your deployment commands here
-          # Examples:
-          # - kubectl apply -f k8s/staging/
-          # - docker-compose -f docker-compose.staging.yml up -d
-          # - ansible-playbook -i inventories/staging deploy.yml
+          # Get the latest image tag
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "tag=main-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            echo "env=production" >> $GITHUB_OUTPUT
+          else
+            echo "tag=develop-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+            echo "env=staging" >> $GITHUB_OUTPUT
+          fi
+          echo "image=${{ env.REGISTRY }}/${{ github.repository }}/taskmanager" >> $GITHUB_OUTPUT
 
-      # Deploy to production (main branch)
-      - name: Deploy to Production
-        if: github.ref == 'refs/heads/main'
+      # Display deployment info
+      - name: Display deployment info
         run: |
-          echo "Deploying to PRODUCTION environment..."
-          # Add your deployment commands here
-          # Examples:
-          # - kubectl apply -f k8s/production/
-          # - docker-compose -f docker-compose.prod.yml up -d
-          # - ansible-playbook -i inventories/production deploy.yml
+          echo "========================================="
+          echo "  DEPLOYMENT CONFIGURATION"
+          echo "========================================="
+          echo "Environment: ${{ steps.image.outputs.env }}"
+          echo "Image: ${{ steps.image.outputs.image }}:${{ steps.image.outputs.tag }}"
+          echo "Registry: ${{ env.REGISTRY }}"
+          echo "========================================="
+      
+      # Note: For actual deployment, use one of the methods below:
+      # 
+      # METHOD 1: SSH to your server (recommended for production)
+      # You need to add SSH secrets: SSH_HOST, SSH_USER, SSH_KEY
+      #
+      # METHOD 2: GitHub SSH Deployment (add in repo settings)
+      # 
+      # METHOD 3: Cloud provider integration (AWS, GCP, Azure)
 
-      # Health check after deployment
+      # For demonstration - show the deployment command
+      - name: Show deployment command
+        run: |
+          echo "========================================="
+          echo "  DEPLOYMENT COMMANDS"
+          echo "========================================="
+          echo ""
+          echo "To deploy manually, run:"
+          echo ""
+          echo "  # Pull the image"
+          echo "  docker pull ${{ steps.image.outputs.image }}:${{ steps.image.outputs.tag }}"
+          echo ""
+          echo "  # Run the container"
+          echo "  docker run -d \\"
+          echo "    --name taskmanager-${{ steps.image.outputs.env }} \\"
+          echo "    -p 8080:8080 \\"
+          echo "    -e SPRING_PROFILES_ACTIVE=prod \\"
+          echo "    -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/taskmanager \\"
+          echo "    -e SPRING_DATASOURCE_USERNAME=root \\"
+          echo "    -e SPRING_DATASOURCE_PASSWORD=root \\"
+          echo "    --network taskmanager-network \\"
+          echo "    ${{ steps.image.outputs.image }}:${{ steps.image.outputs.tag }}"
+          echo ""
+          echo "========================================="
+
+      # Health check placeholder
       - name: Health Check
         run: |
-          echo "Performing health check..."
-          # curl -f https://taskmanager.example.com/actuator/health || exit 1
+          echo "========================================="
+          echo "  HEALTH CHECK"
+          echo "========================================="
+          echo "Note: In production, configure actual health check"
+          echo "Example: curl -f http://localhost:8080/actuator/health"
+          echo "========================================="
+
+      # Create deployment record
+      - name: Create deployment record
+        run: |
+          echo "Deployment initiated for ${{ steps.image.outputs.env }}" >> deployment-log.txt
+          echo "Image: ${{ steps.image.outputs.image }}:${{ steps.image.outputs.tag }}" >> deployment-log.txt
+          echo "Commit: ${{ github.sha }}" >> deployment-log.txt
+          echo "Date: $(date)" >> deployment-log.txt
+          echo "========================================="
+
+      # Save deployment info as artifact
+      - name: Upload deployment info
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-${{ steps.image.outputs.env }}
+          path: deployment-log.txt
 
   # ============================================
   # STAGE 8: NOTIFICATIONS
