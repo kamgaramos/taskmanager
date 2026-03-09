@@ -121,14 +121,30 @@ Pour recevoir des notifications Discord:
 ### Erreur: "Project not found"
 - Vérifier que le projet existe sur SonarCloud
 - Vérifier que le SONAR_PROJECT_KEY correspond (dans ci-cd.yml: `taskmanager`)
+- **Solution**: Créer le projet sur SonarCloud avec le nom "taskmanager"
 
 ### Erreur: "Token is invalid"
 - Régénérer un nouveau token sur SonarCloud
 - Mettre à jour le secret sur GitHub
+- **Solution**:
+  1. Aller sur sonarcloud.io → My Account → Security
+  2. Supprimer l'ancien token et en créer un nouveau
+  3. Mettre à jour le secret sur GitHub
 
 ### Le pipeline ne se déclenche pas
 - Vérifier que le fichier workflow est dans `.github/workflows/`
 - Vérifier que les triggers sont corrects (push sur main/develop)
+- **Solution**:
+  1. Vérifier que le fichier est dans `.github/workflows/ci-cd.yml`
+  2. Les triggers doivent être: push sur main/develop, pull_request, release, schedule, workflow_dispatch
+
+### Erreur: "Permission denied" pour Docker
+- Le push vers GHCR nécessite des permissions
+- **Solution**: Vérifier que le token GitHub a les bonnes permissions (repo, write:packages)
+
+### Erreur: Tests échouent
+- Vérifier la configuration de la base de données MySQL
+- **Solution**: Le pipeline utilise MySQL 8.0 avec les credentials root/root
 
 ---
 
