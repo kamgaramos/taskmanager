@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
  * Main application class for Task Manager API.
+ * 
+ * @version 1.0.0
  */
 @SpringBootApplication
 @EnableJpaAuditing
