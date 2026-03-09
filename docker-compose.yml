@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/taskmanager?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - APP_JWT_SECRET=${JWT_SECRET:-mySecretKeyForJWTTokenGenerationMustBeLongEnough256Bits}
+      - APP_JWT_ACCESS_TOKEN_EXPIRATION=86400000
+      - APP_JWT_REFRESH_TOKEN_EXPIRATION=604800000
+    networks:
+      - taskmanager-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: taskmanager
+      MYSQL_USER: taskmanager
+      MYSQL_PASSWORD: taskmanager
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - taskmanager-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  sonarqube:
+    image: sonarqube:latest
+    ports:
+      - "9000:9000"
+    environment:
+      - SONARQUBE_ADMIN_PASSWORD=admin
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+    networks:
+      - taskmanager-network
+    restart: unless-stopped
+
+networks:
+  taskmanager-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  sonarqube_data:
+

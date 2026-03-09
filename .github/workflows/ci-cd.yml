@@ -1,0 +1,413 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  release:
+    types: [published]
+  schedule:
+    # Nightly build - Security scan every day at 2 AM
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'staging'
+
+# Environment variables
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  JAVA_VERSION: '17'
+  DOCKER_BUILDKIT: 1
+
+# Concurrency settings
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================
+  # STAGE 1: BUILD & VERIFICATION
+  # ============================================
+  build:
+    name: Build & Verify
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for SonarQube
+
+      # Setup Java
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      # Cache Maven dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Build application
+      - name: Build application
+        run: ./mvnw clean package -DskipTests
+
+      # Upload JAR artifact
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: taskmanager-app
+          path: target/*.jar
+          retention-days: 30
+
+  # ============================================
+  # STAGE 2: CODE QUALITY CHECKS
+  # ============================================
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      # Checkstyle
+      - name: Run Checkstyle
+        run: ./mvnw checkstyle:check
+        continue-on-error: true
+
+      # PMD Analysis
+      - name: Run PMD
+        run: ./mvnw pmd:pmd
+        continue-on-error: true
+
+      # SpotBugs Analysis
+      - name: Run SpotBugs
+        run: ./mvnw spotbugs:spotbugs
+        continue-on-error: true
+
+      # Upload Checkstyle results
+      - name: Upload Checkstyle results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checkstyle-report
+          path: target/checkstyle-result.xml
+
+  # ============================================
+  # STAGE 3: TESTS
+  # ============================================
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: build
+    
+    services:
+      # MySQL for integration tests
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: taskmanager
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      # Run tests
+      - name: Run tests
+        run: ./mvnw test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/taskmanager
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
+
+      # Upload test reports
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: target/surefire-reports/**/*.xml
+
+      # Upload JaCoCo coverage report
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/index.html
+
+  # ============================================
+  # STAGE 4: SONARQUBE ANALYSIS
+  # ============================================
+  sonar-analysis:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      # SonarQube Scan
+      - name: SonarQube Scan
+        run: ./mvnw sonar:sonar
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: taskmanager
+
+      # Upload SonarQube results
+      - name: Upload SonarQube results
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-report
+          path: target/sonar/report-taskmanager.html
+
+  # ============================================
+  # STAGE 5: SECURITY SCANS
+  # ============================================
+  security-scan:
+    name: Security Scans
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Dependency Check (OWASP)
+      - name: OWASP Dependency Check
+        run: ./mvnw org.owasp:dependency-check-maven:check
+        continue-on-error: true
+
+      # Upload dependency check report
+      - name: Upload dependency check report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.html
+
+      # Trivy Image Scan (if Dockerfile exists)
+      - name: Build Docker image for scanning
+        if: hashFiles('Dockerfile') != ''
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:scan .
+
+      - name: Trivy Image Scan
+        if: hashFiles('Dockerfile') != ''
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.IMAGE_NAME }}:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results
+        if: hashFiles('Dockerfile') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+
+      # GitLeaks Secret Scan
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+
+  # ============================================
+  # STAGE 6: BUILD DOCKER IMAGE
+  # ============================================
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: github.event_name != 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login to GitHub Container Registry
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=sha,prefix={{branch}}-
+
+      # Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Create deployment artifact
+      - name: Create deployment artifact
+        run: |
+          echo "${{ steps.meta.outputs.tags }}" > tags.txt
+          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" >> tags.txt
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-info
+          path: tags.txt
+
+  # ============================================
+  # STAGE 7: DEPLOYMENT
+  # ============================================
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+      url: ${{ github.ref == 'refs/heads/main' && 'https://taskmanager.prod.example.com' || 'https://taskmanager.staging.example.com' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download deployment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-info
+
+      - name: Display image tags
+        run: cat tags.txt
+
+      # Deploy to staging (develop branch)
+      - name: Deploy to Staging
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          echo "Deploying to STAGING environment..."
+          # Add your deployment commands here
+          # Examples:
+          # - kubectl apply -f k8s/staging/
+          # - docker-compose -f docker-compose.staging.yml up -d
+          # - ansible-playbook -i inventories/staging deploy.yml
+
+      # Deploy to production (main branch)
+      - name: Deploy to Production
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Deploying to PRODUCTION environment..."
+          # Add your deployment commands here
+          # Examples:
+          # - kubectl apply -f k8s/production/
+          # - docker-compose -f docker-compose.prod.yml up -d
+          # - ansible-playbook -i inventories/production deploy.yml
+
+      # Health check after deployment
+      - name: Health Check
+        run: |
+          echo "Performing health check..."
+          # curl -f https://taskmanager.example.com/actuator/health || exit 1
+
+  # ============================================
+  # STAGE 8: NOTIFICATIONS
+  # ============================================
+  notify:
+    name: Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy, test, security-scan]
+    if: always()
+    
+    steps:
+      # Discord Notification
+      - name: Discord Notification
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: |
+            {{ workflow }} - {{ status }}
+            Branch: {{ ref }}
+            Commit: {{ sha }}
+            Run: {{ runNumber }}
+            URL: {{ event.head_commit.url }}
+
+      # GitHub Issue on failure
+      - name: Create GitHub Issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'CI/CD Pipeline Failed',
+              body: `Pipeline failed on ${context.ref}
+              Commit: ${context.sha}
+              Run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            })
+

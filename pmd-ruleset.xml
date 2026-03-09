@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<ruleset name="PMD Rules"
+    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    
+    <description>PMD Rules for Task Manager Application</description>
+
+    <!-- Category: Best Practices -->
+    <rule ref="category/java/bestpractices.xml">
+        <exclude name="AvoidPrintStackTrace"/>
+        <exclude name="AvoidReassigningParameters"/>
+        <exclude name="LooseCoupling"/>
+        <exclude name="UseLocaleWithCaseConversions"/>
+    </rule>
+
+    <!-- Category: Code Style -->
+    <rule ref="category/java/codestyle.xml">
+        <exclude name="AtLeastOneConstructor"/>
+        <exclude name="AvoidFinalLocalVariable"/>
+        <exclude name="AvoidPrefixingMethodParameters"/>
+        <exclude name="ConfusingTernary"/>
+        <exclude name="EmptyMethodInAbstractClassShouldBeAbstract"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="PrematureDeclaration"/>
+        <exclude name="TooManyStaticImports"/>
+        <exclude name="UnnecessaryAnnotationValueElement"/>
+        <exclude name="UnnecessaryConstructor"/>
+        <exclude name="UnnecessaryImport"/>
+        <exclude name="UnnecessaryModifier"/>
+        <exclude name="UnnecessaryReturn"/>
+        <exclude name="UseDiamondOperator"/>
+        <exclude name="UseShortArrayInitializer"/>
+    </rule>
+
+    <!-- Category: Design -->
+    <rule ref="category/java/design.xml">
+        <exclude name="AvoidCatchingGenericException"/>
+        <exclude name="AvoidDeeplyNestedIfStmts">
+            <properties>
+                <property name="problemDepth" value="4"/>
+            </properties>
+        </exclude>
+        <exclude name="AvoidRethrowingException"/>
+        <exclude name="AvoidThrowingNewInstanceOfSameException"/>
+        <exclude name="AvoidUncheckedExceptionsInSignatures"/>
+        <exclude name="CollapsibleIfStatements"/>
+        <exclude name="ConsiderUsingFinalField"/>
+        <exclude name="CouplingBetweenObjects"/>
+        <exclude name="CyclomaticComplexity">
+            <properties>
+                <property name="methodReportLevel" value="15"/>
+            </properties>
+        </exclude>
+        <exclude name="ExcessiveImports"/>
+        <exclude name="ExcessiveParameterList"/>
+        <exclude name="ExcessivePublicCount"/>
+        <exclude name="FinalFieldCouldBeStatic"/>
+        <exclude name="GodClass"/>
+        <exclude name="ImmutableField"/>
+        <exclude name="InstantiationToGetClass"/>
+        <exclude name="LawOfDemeter"/>
+        <exclude name="LooseCoupling"/>
+        <exclude name="MessageRules"/>
+        <exclude name="MissingStaticMethodInNonInstantiatableClass"/>
+        <exclude name="MoreThanOneLogger"/>
+        <exclude name="NcssCount"/>
+        <exclude name="NoDataPropertyFlaw"/>
+        <exclude name="NonStaticInitializer"/>
+        <exclude name="OptimizableToArray"/>
+        <exclude name="PreserveStackTrace"/>
+        <exclude name="RedirectedFieldHidesField"/>
+        <exclude name="ReturnEmptyArrayRatherThanNull"/>
+        <exclude name="ShortClassName"/>
+        <exclude name="SignatureDeclareThrowsException"/>
+        <exclude name="SimplifiedTernary"/>
+        <exclude name="SingularField"/>
+        <exclude name="SwitchDensity"/>
+        <exclude name="TooManyFields"/>
+        <exclude name="TooManyMethods"/>
+        <exclude name="TooManyParameters"/>
+        <exclude name="UncommentedEmptyMethod"/>
+        <exclude name="UnnecessaryLocalBeforeReturn"/>
+        <exclude name="UseObjectForClearerAPI"/>
+        <exclude name="UseUtilityClass"/>
+    </rule>
+
+    <!-- Category: Error Prone -->
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="AssignmentInOperand"/>
+        <exclude name="AvoidAssertAsIdentifier"/>
+        <exclude name="AvoidBranchingStatementAsLastInLoop"/>
+        <exclude name="AvoidCatchingNPE"/>
+        <exclude name="AvoidCatchingThrowable"/>
+        <exclude name="AvoidDuplicateLiterals"/>
+        <exclude name="AvoidFieldNameMatchingMethodName"/>
+        <exclude name="AvoidFieldNameMatchingTypeName"/>
+        <exclude name="AvoidInstanceofChecksInCatchClause"/>
+        <exclude name="AvoidLosingExceptionInformation"/>
+        <exclude name="AvoidMathZero"/>
+        <exclude name="AvoidMultipleUnaryOperators"/>
+        <exclude name="AvoidNestedBlocks"/>
+        <exclude name="AvoidNullCheckInLoopCondition"/>
+        <exclude name="AvoidOctalEscape"/>
+        <exclude name="AvoidPlacments"/>
+        <exclude name="AvoidPotentiallyConfusingChars"/>
+        <exclude name="AvoidProtectedFieldInFinalClass"/>
+        <exclude name="AvoidProtectedMethodInFinalClass"/>
+        <exclude name="AvoidReferenceToStaticVariable"/>
+        <exclude name="AvoidReturnOfNull"/>
+        <exclude name="AvoidSelfAssignment"/>
+        <exclude name="AvoidThrowingNullPointerException"/>
+        <exclude name="AvoidThrowingRawExceptionTypes"/>
+        <exclude name="AvoidUncheckedExceptionsInSignatures"/>
+        <exclude name="AvoidUsingOctalValues"/>
+        <exclude name="BadComparison"/>
+        <exclude name="BrokenNullCheck"/>
+        <exclude name="CheckResultSet"/>
+        <exclude name="ClassCastExceptionWithToArray"/>
+        <exclude name="CloneableClassInSecureContext"/>
+        <exclude name="CloseResource"/>
+        <exclude name="CompareObjectsWithEquals"/>
+        <exclude name="ConstructorCallsOverridableMethod"/>
+        <exclude name="DataflowAnomalyAnalysis"/>
+        <exclude name="DoNotCallGarbageCollectionExplicitly"/>
+        <exclude name="DoNotHardCodeSDBCard"/>
+        <exclude name="DontUseFloatTypeForLoopIndices"/>
+        <exclude name="EmptyCatchBlock"/>
+        <exclude name="EmptyIfStmt"/>
+        <exclude name="EmptyStatementNotInLoop"/>
+        <exclude name="EmptySyncBlock"/>
+        <exclude name="EqualsNull"/>
+        <exclude name="ExplicitGarbageCollection"/>
+        <exclude name="FinalizeDoesNotCallSuperFinalize"/>
+        <exclude name="FinalizeOnlyCallsSuperFinalize"/>
+        <exclude name="FinalizeOverloaded"/>
+        <exclude name="FinalizeShouldBeProtected"/>
+        <exclude name="IdempotentOperations"/>
+        <exclude name="ImplicitFloatToDouble"/>
+        <exclude name="ImportFromSamePackage"/>
+        <exclude name="IncorrectHttpStatusCodes"/>
+        <exclude name="InefficientEmptyStringCheck"/>
+        <exclude name="InefficientStringBuffering"/>
+        <exclude name="InsecureCrypto"/>
+        <exclude name="InvalidSlf4jMessageFormat"/>
+        <exclude name="JMI Spy Debugging Invasive"/>
+        <exclude name="LinguisticNaming"/>
+        <exclude name="LittleEndianByteOrderLoad"/>
+        <exclude name="LoadTestKnown"/>
+        <exclude name="LogAndAdd"/>
+        <exclude name="LogStatementHangs"/>
+        <exclude name="LoggerIsNotStaticFinal"/>
+        <exclude name="LoopConditionNotUpdateInsideLoop"/>
+        <exclude name="LossyPrecision"/>
+        <exclude name="ManuallySetThreadName"/>
+        <exclude name="MethodReturnsInternalArray"/>
+        <exclude name="MisplacedNullCheck"/>
+        <exclude name="MissingStaticMethodInNonInstantiatableClass"/>
+        <exclude name="MoreThanOneLogger"/>
+        <exclude name="NonSerializableElementInSerialization"/>
+        <exclude name="NonSerialVersionUID"/>
+        <exclude name="NullAssignment"/>
+        <exclude name="OnlyOneReturn"/>
+        <exclude name="OverridableMethodCallInConstructor"/>
+        <exclude name="PackageAssertion"/>
+        <exclude name="ParameterAssignment"/>
+        <exclude name="PositionLiteralsFirstInCaseInsensitiveComparisons"/>
+        <exclude name="PositionLiteralsFirstInComparisons"/>
+        <exclude name="PreserveStackTrace"/>
+        <exclude name="ProperLogger"/>
+        <exclude name="ProxyClass"/>
+        <exclude name="ReadObjectNoData"/>
+        <exclude name="RedundantFieldInitializer"/>
+        <exclude name="ReturnEmptyArrayRatherThanNull"/>
+        <exclude name="ReturnNullFromMethodThatThrowsNPE"/>
+        <exclude name="SameClassName"/>
+        <exclude name="SearchLoop"/>
+        <exclude name="SeeNonShortCircuit"/>
+        <exclude name="SessionIdInUrl"/>
+        <exclude name="SignatureDeclareThrowsException"/>
+        <exclude name="SimpleDateFormatNeedsLocale"/>
+        <exclude name="SingleMethodNamedArgument"/>
+        <exclude name="StaticCalendarDateInstance"/>
+        <exclude name="StaticConnection"/>
+        <exclude name="StaticEJBFieldName"/>
+        <exclude name="StaticFieldName"/>
+        <exclude name="StaticFileDetector"/>
+        <exclude name="StaticHashCode"/>
+        <exclude name="StaticMatcher"/>
+        <exclude name="StaticMessageDetector"/>
+        <exclude name="StaticTimer"/>
+        <exclude name="StaticXMLFactory"/>
+        <exclude name="StrictException"/>
+        <exclude name="StringBufferLength"/>
+        <exclude name="StringInstantiation"/>
+        <exclude name="StringToString"/>
+        <exclude name="SuspiciousEqualsMethodName"/>
+        <exclude name="SuspiciousHashcodeMethodName"/>
+        <exclude name="SuspiciousOctalEscape"/>
+        <exclude name="TestClassWithoutTestCases"/>
+        <exclude name="TooFewBranchesForASwitchStatement"/>
+        <exclude name="UnconditionalIfStatement"/>
+        <exclude name="UnnecessaryBooleanAssertion"/>
+        <exclude name="UnnecessaryFinalOnLocalVariableOrParameter"/>
+        <exclude name="UnnecessaryNullCheck"/>
+        <exclude name="UnnecessaryParentheses"/>
+        <exclude name="UnscientificPrimitive"/>
+        <exclude name="UnusedNullCheckInEquals"/>
+        <exclude name="UseCollectionIsEmpty"/>
+        <exclude name="UseProperClassLoader"/>
+        <exclude name="UselessOperationOnImmutable"/>
+        <exclude name="UseObjectForClearerAPI"/>
+    </rule>
+
+    <!-- Category: Performance -->
+    <rule ref="category/java/performance.xml">
+        <exclude name="AddEmptyString"/>
+        <exclude name="AvoidArrayLoops"/>
+        <exclude name="AvoidCalendarDateCreation"/>
+        <exclude name="AvoidCatchingNPE"/>
+        <exclude name="AvoidCodeToStringGC"/>
+        <exclude name="AvoidConcurrentCalls"/>
+        <exclude name="AvoidDecimalParsing"/>
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
+        <exclude name="AvoidNumberConstructor"/>
+        <exclude name="AvoidObjectArrays"/>
+        <exclude name="AvoidPrematureFacade"/>
+        <exclude name="AvoidPrintStackTrace"/>
+        <exclude name="AvoidReassigningParameters"/>
+        <exclude name="AvoidStringBufferField"/>
+        <exclude name="AvoidUsingCharAt"/>
+        <exclude name="AvoidWastefulAssignments"/>
+        <exclude name="BigIntegerInstantiation"/>
+        <exclude name="BooleanInstantiation"/>
+        <exclude name="ByteInstantiation"/>
+        <exclude name="ConsecutiveAppendsShouldReuse"/>
+        <exclude name="ConsecutiveLiteralAppends"/>
+        <exclude name="DoubleCheckedLocking"/>
+        <exclude name="EmptyMethodInAbstractClassShouldBeAbstract"/>
+        <exclude name="InsufficientStringBufferDeclaration"/>
+        <exclude name="IntegerInstantiation"/>
+        <exclude name="LongInstantiation"/>
+        <exclude name="OptimizableToArray"/>
+        <exclude name="RedundantFieldInitializer"/>
+        <exclude name="ShortInstantiation"/>
+        <exclude name="SimplifyStartsWith"/>
+        <exclude name="StringBufferInstantiationWithChar"/>
+        <exclude name="UseArrayListInsteadOfVector"/>
+        <exclude name="UseArraysAsList"/>
+        <exclude name="UseIndexOfChar"/>
+        <exclude name="UseIOStreamsWithApacheCommonsFile"/>
+        <exclude name="UseJava7Features"/>
+        <exclude name="UseJava8Features"/>
+        <exclude name="UseNotifyAllInsteadOfNotify"/>
+        <exclude name="UseProperClassLoader"/>
+        <exclude name="UseStringBuilderConcat"/>
+    </rule>
+
+</ruleset>
+

@@ -1,0 +1,76 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: taskmanager
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/taskmanager?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  h2:
+    console:
+      enabled: false
+
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=100,expireAfterWrite=600s
+
+# JWT Configuration
+app:
+  jwt:
+    secret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationMustBeLongEnough256Bits}
+    access-token-expiration: 86400000  # 24 hours in milliseconds
+    refresh-token-expiration: 604800000  # 7 days in milliseconds
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.taskmanager: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItEnabled: true
+
+# CORS Configuration
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:8080
+
+# Rate Limiting
+rate-limit:
+  enabled: true
+  requests-per-minute: 60
+
