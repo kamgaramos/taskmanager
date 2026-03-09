@@ -118,28 +118,13 @@ jobs:
           path: target/checkstyle-result.xml
 
   # ============================================
-  # STAGE 3: TESTS
+  # STAGE 3: TESTS (Using H2 in-memory database)
   # ============================================
   test:
     name: Tests
     runs-on: ubuntu-latest
     needs: build
     
-    services:
-      # MySQL for integration tests
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: taskmanager
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-        ports:
-          - 3306:3306
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -151,14 +136,9 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: 'maven'
 
-      # Run tests
+      # Run tests (using H2 from application-test.yml, NOT MySQL)
       - name: Run tests
         run: mvn test
-        env:
-          SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/taskmanager
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: root
 
       # Upload test reports
       - name: Upload test reports
